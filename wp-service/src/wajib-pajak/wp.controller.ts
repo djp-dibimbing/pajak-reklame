@@ -1,5 +1,7 @@
 import { Controller, Post, Body, Get, Request, Patch, Param } from "@nestjs/common";
 import { WajibPajakService } from "./wp.service";
+import { CreateWpDto } from "./dto/cr-wp.dto";
+import { UpdateWpDto } from "./dto/up-wp.dto";
 
 @Controller('wajib-pajak')
 export class WajibPajakController {
@@ -11,12 +13,12 @@ export class WajibPajakController {
     }
 
     @Post()
-    async create(@Body() data) {
+    async create(@Body() data: CreateWpDto) {
         return this.wpService.create(data);
     }
 
-    @Patch('update')
-    async update(@Body() data) {
+    @Patch()
+    async update(@Body() data: UpdateWpDto) {
         return this.wpService.update(data);
     }
 
