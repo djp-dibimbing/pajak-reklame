@@ -11,10 +11,10 @@ export class WajibPajakEntity {
     @Column()
     alamat: string;
 
-    @Column()
+    @Column({ name: 'jns_kelamin'})
     jnsKelamin: string;
 
-    @Column()
+    @Column({ name: 'jns_wp' })
     jnsWp: string;
 
     @Column()

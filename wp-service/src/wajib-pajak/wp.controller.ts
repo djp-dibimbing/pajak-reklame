@@ -12,6 +12,11 @@ export class WajibPajakController {
         return this.wpService.findByNpwp(npwp);
     }
 
+    @Get()
+    async findAll() {
+        return this.wpService.findAll();
+    }
+
     @Post()
     async create(@Body() data: CreateWpDto) {
         return this.wpService.create(data);
