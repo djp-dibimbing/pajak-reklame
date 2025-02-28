@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaFileAlt } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaFileAlt, FaUpload } from "react-icons/fa";
 import Modal from "react-modal";
 
 export default function SptPage() {
@@ -23,7 +23,6 @@ export default function SptPage() {
     pengurangan: "",
     netto: "",
     pph: "",
-    file_dok_lampiran: "",
   });
 
   useEffect(() => {
@@ -43,7 +42,8 @@ export default function SptPage() {
     setModalType(type);
     if (item) {
       setSelectedData(item);
-      setFormData({ ...item }); // Pastikan formData juga terisi dengan data yang ada
+      setFormData({ ...item });
+      setFormData({ ...item, file_dok_lampiran: null });
     } else {
       setSelectedData(null);
       setFormData({
@@ -61,54 +61,75 @@ export default function SptPage() {
         pengurangan: "",
         netto: "",
         pph: "",
-        file_dok_lampiran: "",
       });
     }
-  
     setModalOpen(true);
   };
 
   const closeModal = () => setModalOpen(false);
 
-  const handleSave = () => {
-    if (modalType === "add") {
-      const handleSave = async () => {
-        const method = modalType === "add" ? "POST" : "PUT";
-        const endpoint = modalType === "add" ? "http://localhost:3001/spt" : `http://localhost:3001/spt/${selectedData.id_spt}`;
-      
-        try {
-          const response = await fetch(endpoint, {
-            method: method,
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          });
-      
-          if (!response.ok) {
-            throw new Error("Gagal menyimpan data");
-          }
-      
-          const result = await response.json();
-      
-          if (modalType === "add") {
-            setSptData([...sptData, result]); 
-          } else {
-            setSptData(sptData.map(item => (item.id_spt === selectedData.id_spt ? result : item)));
-          }
-      
-          closeModal();
-        } catch (error) {
-          console.error("Terjadi kesalahan:", error);
-          alert("Gagal menyimpan data");
-        }
-      };
-      
-    } else if (modalType === "edit") {
-      setSptData(sptData.map(item => (item.id_spt === selectedData.id_spt ? formData : item)));
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("File uploaded:", file.name);
     }
-    closeModal();
   };
+
+  const handleSave = async () => {
+    if (!formData.npwp_pemotong || !formData.nama_pemotong || 
+        !formData.npwp_penerima || !formData.nama_penerima ||
+        !formData.masa_pajak || !formData.tahun_pajak || 
+        !formData.penghasilan_setahun || !formData.pph) {
+      alert("Harap isi semua data yang wajib diisi!");
+      return;
+    }
+  
+    if (modalType === "edit" && !selectedData) {
+      alert("Terjadi kesalahan: Data yang akan diedit tidak ditemukan!");
+      return;
+    }
+  
+    const method = modalType === "add" ? "POST" : "PUT";
+    const endpoint = modalType === "add" 
+      ? "http://localhost:3001/spt" 
+      : `http://localhost:3001/spt/${selectedData.id_spt}`;
+  
+    try {
+      console.log("Mengirim data ke:", endpoint);
+      console.log("Data yang dikirim:", JSON.stringify(formData));
+  
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      console.log("Response Status:", response.status);
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error("Error dari server:", errorMessage);
+        throw new Error(`Gagal menyimpan data: ${errorMessage}`);
+      }
+  
+      const result = await response.json();
+      console.log("Response dari server:", result);
+  
+      if (modalType === "add") {
+        setSptData([...sptData, result]);
+      } else {
+        setSptData(sptData.map(item => (item.id_spt === selectedData.id_spt ? result : item)));
+      }
+  
+      closeModal();
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+      alert(`Gagal menyimpan data: ${error.message}`);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-5">
@@ -181,6 +202,8 @@ export default function SptPage() {
                 onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
               />
             ))}
+            <label className="bg-blue-500 text-white px-4 py-2 rounded w-full flex items-center justify-center mt-2 cursor-pointer"><FaUpload className="mr-2" /> Upload File <input type="file" className="hidden" onChange={handleFileUpload} />
+            </label>
             <button className="bg-green-600 text-white px-4 py-2 rounded mt-4 w-full" onClick={handleSave}>Simpan</button>
           </>
         )}

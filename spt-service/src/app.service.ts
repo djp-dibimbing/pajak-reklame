@@ -15,8 +15,7 @@ export class AppService {
   async findAll(): Promise<Spt[]> {
     return await this.sptRepository.find();
   }
-
-
+  
   async remove(id: number) {
     await this.sptRepository.delete(id);
     return { deleted: true };
